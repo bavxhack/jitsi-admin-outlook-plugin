@@ -1,0 +1,38 @@
+Meet Link – Offline-Vorschau für Outlook Classic
+
+1. Das komplette ZIP entpacken. Nicht direkt aus dem ZIP starten.
+2. Outlook vollständig schließen.
+3. Install.cmd doppelklicken. Das einmalige Vertrauen in das beiliegende
+   Testzertifikat mit JA bestätigen, wenn das Paket aus dem erwarteten
+   GitHub-Actions-Lauf stammt. Kein Administrator und keine Entwicklerwerkzeuge
+   erforderlich. Organisationsrichtlinien können die Installation einschränken.
+4. Outlook Classic starten: Meet Link > Kalendereintrag erstellen.
+5. Den geöffneten Termin mit den normalen Outlook-Befehlen bearbeiten/speichern.
+
+Das Add-in benötigt keine API, keine Serverkonfiguration und keinen Token.
+Es erstellt keine Konferenz und trägt keinen Beispiel-Konferenzlink ein.
+Neues Outlook wird nicht unterstützt.
+
+Voraussetzungen: Outlook Classic, .NET Framework 4.8, VSTO Runtime.
+Wenn eine Runtime fehlt, nennt Install.cmd den offiziellen Download.
+.NET Framework: https://dotnet.microsoft.com/download/dotnet-framework/net48
+VSTO Runtime: https://www.microsoft.com/download/details.aspx?id=48217
+
+Installation wird unter %LOCALAPPDATA%\MeetLinkOutlookAddin\OfflinePreview
+abgelegt. Der Downloadordner kann nach erfolgreicher Installation entfernt werden.
+Für eine neue Pipeline-Version deren Install.cmd ausführen; die bisherige
+Vorschau wird vor dem Installieren der neuen Version deinstalliert.
+Keine automatischen Updates und keine Bindung an einen CI-Runner-Pfad.
+
+Zum Entfernen Outlook schließen und Uninstall.cmd starten. Dabei wird auch
+nur das von diesem Installer hinzugefügte Zertifikatsvertrauen entfernt.
+Eigenständig vorab eingerichtetes Zertifikatsvertrauen bleibt bestehen.
+
+Der CI-Lauf erzeugt ein temporäres Testzertifikat, gültig für drei Monate.
+Es ist kein öffentlich vertrauenswürdiges Produktionszertifikat.
+Der private Schlüssel ist nicht im Paket. Für spätere produktive Verteilung
+ist eine dauerhafte, organisationsseitig akzeptierte Signierung erforderlich.
+
+Windows-Build und Paketprüfung laufen in GitHub Actions. Ein erfolgreicher
+Build beweist noch keine tatsächliche Outlook-Ladefähigkeit; bitte nach der
+Installation den Kalenderbutton, Speichern und erneutes Öffnen testen.

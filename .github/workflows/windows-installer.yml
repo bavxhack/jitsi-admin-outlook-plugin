@@ -1,0 +1,83 @@
+name: Windows installer (offline preview)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-installer:
+    name: Build, test and package VSTO
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Validate PowerShell syntax
+        run: |
+          $failed = $false
+          Get-ChildItem scripts, installer -Filter *.ps1 -Recurse | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count -gt 0) {
+              $parseErrors | ForEach-Object { Write-Host $_.Message -ForegroundColor Red }
+              $failed = $true
+            }
+          }
+          if ($failed) { throw 'PowerShell syntax validation failed.' }
+      - name: Ensure Visual Studio Office/VSTO tools
+        run: .\scripts\ensure-office-tools.ps1
+      - name: Create temporary preview signing certificate
+        id: certificate
+        run: |
+          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=Meet Link Offline Preview' -CertStoreLocation Cert:\CurrentUser\My -Provider 'Microsoft Enhanced RSA and AES Cryptographic Provider' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -KeySpec Signature -KeyExportPolicy NonExportable -NotAfter (Get-Date).AddMonths(3)
+          "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
+          # Trust only inside the disposable CI worker, so manifest verification works.
+          $public = Export-Certificate -Cert $cert -FilePath "$env:RUNNER_TEMP\meetlink.cer"
+          Import-Certificate -FilePath $public.FullName -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
+          Import-Certificate -FilePath $public.FullName -CertStoreLocation Cert:\CurrentUser\TrustedPublisher | Out-Null
+      - name: Build tests, VSTO and portable signed installer
+        env:
+          SIGNING_THUMBPRINT: ${{ steps.certificate.outputs.thumbprint }}
+        run: |
+          $revision = [int]$env:GITHUB_RUN_NUMBER
+          if ($revision -gt 65535) { throw 'Neue Minor-Version im Workflow setzen; ClickOnce-Revisionsgrenze erreicht.' }
+          .\scripts\package-offline.ps1 -CertificateThumbprint $env:SIGNING_THUMBPRINT -Version "0.1.$revision.0"
+      - name: Upload installable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Meet-Link-Outlook-Offline-${{ github.run_number }}
+          path: artifacts/Meet-Link-Outlook-Offline/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Core-test-results-${{ github.run_number }}
+          path: artifacts/test-results/
+          if-no-files-found: warn
+      - name: Remove temporary signing certificate
+        if: always()
+        env:
+          SIGNING_THUMBPRINT: ${{ steps.certificate.outputs.thumbprint }}
+        run: |
+          if ($env:SIGNING_THUMBPRINT) {
+            foreach ($store in @('My', 'Root', 'TrustedPublisher')) {
+              $path = "Cert:\CurrentUser\$store\$env:SIGNING_THUMBPRINT"
+              if (Test-Path $path) {
+                if ($store -eq 'My') { Remove-Item $path -DeleteKey -Force } else { Remove-Item $path -Force }
+              }
+            }
+          }

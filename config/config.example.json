@@ -1,0 +1,22 @@
+{
+  "baseUrl": "https://meetlink.example.invalid/",
+  "serversEndpoint": "api/servers",
+  "createConferenceEndpoint": "api/conferences/instant",
+  "serversHttpMethod": "GET",
+  "createConferenceHttpMethod": "POST",
+  "timeoutSeconds": 30,
+  "serverCacheSeconds": 60,
+  "auth": {
+    "mode": "BearerTokenEnvironment",
+    "tokenEnvironmentVariable": "MEETLINK_ACCESS_TOKEN",
+    "allowedOrigins": [
+      "https://meetlink.example.invalid"
+    ]
+  },
+  "body": {
+    "heading": "Meet-Link-Konferenz",
+    "linkLabel": "Teilnehmen:"
+  },
+  "mockMode": false,
+  "logLevel": "Information"
+}

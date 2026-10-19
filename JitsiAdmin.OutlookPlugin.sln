@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JitsiAdmin.OutlookPlugin", "src\JitsiAdmin.OutlookPlugin\JitsiAdmin.OutlookPlugin.csproj", "{75F36B95-4147-40F8-BFFA-EBB15A24CB97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JitsiAdmin.OutlookPlugin.Core", "src\JitsiAdmin.OutlookPlugin.Core\JitsiAdmin.OutlookPlugin.Core.csproj", "{7DA23270-BC86-42CC-9B34-4988A6BFB948}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JitsiAdmin.OutlookPlugin.Core.Tests", "tests\JitsiAdmin.OutlookPlugin.Core.Tests\JitsiAdmin.OutlookPlugin.Core.Tests.csproj", "{106F90CB-DC52-484D-A2BE-14241239E39F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{75F36B95-4147-40F8-BFFA-EBB15A24CB97}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{75F36B95-4147-40F8-BFFA-EBB15A24CB97}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{75F36B95-4147-40F8-BFFA-EBB15A24CB97}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{75F36B95-4147-40F8-BFFA-EBB15A24CB97}.Release|Any CPU.Build.0 = Release|AnyCPU
+		{7DA23270-BC86-42CC-9B34-4988A6BFB948}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{7DA23270-BC86-42CC-9B34-4988A6BFB948}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{7DA23270-BC86-42CC-9B34-4988A6BFB948}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{7DA23270-BC86-42CC-9B34-4988A6BFB948}.Release|Any CPU.Build.0 = Release|AnyCPU
+		{106F90CB-DC52-484D-A2BE-14241239E39F}.Debug|Any CPU.ActiveCfg = Debug|AnyCPU
+		{106F90CB-DC52-484D-A2BE-14241239E39F}.Debug|Any CPU.Build.0 = Debug|AnyCPU
+		{106F90CB-DC52-484D-A2BE-14241239E39F}.Release|Any CPU.ActiveCfg = Release|AnyCPU
+		{106F90CB-DC52-484D-A2BE-14241239E39F}.Release|Any CPU.Build.0 = Release|AnyCPU
+	EndGlobalSection
+EndGlobal
