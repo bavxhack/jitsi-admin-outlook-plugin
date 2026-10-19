@@ -1,3 +1,18 @@
+# CI-Korrektur: OfficeTools/MSBuild-Erkennung
+
+Der gemeldete Windows-Lauf erreichte vorhandene Office-Targets, scheiterte aber anschließend am zusätzlichen `vswhere -requires Microsoft.VisualStudio.Component.OfficeTools`-Filter. Dieser Metadatenfilter wird nicht mehr verwendet.
+
+`scripts/office-toolchain.ps1` ermittelt VS-2022-Installationen und prüft MSBuild.exe sowie Office-Targets im Dateisystem derselben Installation. Ensure, Build und Publish verwenden dieselbe Erkennung; der gewählte VSToolsPath wird explizit an MSBuild übergeben. Eine bereits vollständige Toolchain wird ohne unnötige Neuinstallation verwendet. Fehlende Dateien werden mit konkreten Pfaden diagnostiziert.
+
+Prüfungen dieser Korrektur:
+
+- Portable PowerShell 7.4.6 im Arbeitsbereich bereitgestellt; erster Start ohne Cache-Override scheiterte am schreibgeschützten Benutzerverzeichnis. Mit XDG-Cache-/Konfigurations-/Datenpfaden im Arbeitsbereich erfolgreich gestartet.
+- `pwsh -NoProfile -File scripts/test-office-toolchain.ps1`: Exit 0. Vorhandene Dateien ohne Komponentenmetadaten, Pfade mit Leerzeichen, getrennte unvollständige Installationen, fehlende Targets, alternative vollständige Installation und amd64-Fallback geprüft. Diese Dateisystemtests laufen künftig auch vor OfficeTools-Provisionierung in CI.
+- PowerShell-Parserprüfung aller `.ps1`-Dateien: Exit 0 unter PowerShell 7.4.6/Linux. Windows PowerShell 5.1 wird weiterhin im Workflow geprüft.
+- `python3 scripts/verify-source.py`: erfolgreich. Kein Windows-/VSTO-Build durch diesen Test belegt; dazu ist der nächste CI-Lauf erforderlich.
+
+---
+
 # Aktueller Status: Offline-Kalenderbutton und Windows-Pipeline
 
 Stand 19. Oktober 2026, nach der Eingrenzung durch den Nutzer: zunächst **nur installierbares Plugin ohne API**, das einen Kalendereintrag erstellt, plus Pipeline für ein direkt installierbares Artefakt.

@@ -36,6 +36,8 @@ jobs:
             }
           }
           if ($failed) { throw 'PowerShell syntax validation failed.' }
+      - name: Test Office toolchain discovery
+        run: .\scripts\test-office-toolchain.ps1
       - name: Ensure Visual Studio Office/VSTO tools
         run: .\scripts\ensure-office-tools.ps1
       - name: Create temporary preview signing certificate

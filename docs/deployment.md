@@ -45,6 +45,8 @@ Zum Entfernen Outlook schließen und `Uninstall.cmd` aus dem Paket oder aus der 
 
 ## Entwickler und verbleibende Abnahme
 
+`scripts/office-toolchain.ps1` erkennt MSBuild und Office-Targets anhand der tatsächlichen Dateien derselben Visual-Studio-Installation. Ein optionaler Komponentenregistrierungsfilter ist nicht erforderlich; Build und Publish verwenden denselben expliziten VSToolsPath. `scripts/test-office-toolchain.ps1` prüft die Erkennung vor der CI-Provisionierung mit temporären Dateisystem-Fixtures.
+
 Lokale Buildvoraussetzungen: Visual Studio 2022 mit OfficeTools, .NET Framework 4.8 Developer/Targeting Pack, SDK 8 und Windows SDK mit `mage.exe`. `scripts/ensure-office-tools.ps1` kann die Office-Workload ergänzen; das benötigt auf dem Buildrechner entsprechende Installationsrechte. Der Runner braucht Outlook nicht für die Kompilierung, kann daher aber auch dessen Ladefähigkeit nicht testen.
 
 AnyCPU/Prefer32Bit=false ermöglicht denselben verwalteten Host für beide Outlook-Bitnessen; **32-Bit und 64-Bit müssen trotzdem getrennt real getestet werden**. Ein grüner Core-/Host-Build und verifizierte Manifeste beweisen weder erfolgreiche Outlook-Ladung noch funktionierende Office-COM-Integration. [Manuellen Testplan](manual-test-plan.md) ausführen.
