@@ -1,3 +1,17 @@
+# CI-Korrektur: Zertifikatsschritt wartet ohne Ausgabe
+
+Der gemeldete Loganfang zeigt den gesamten bisherigen Run-Block; daraus lässt sich nicht beweisen, ob New-SelfSignedCertificate selbst oder der anschließende Root-Import wartet. Insbesondere CurrentUser-Root-Vertrauensimporte können einen nativen Bestätigungsdialog öffnen. Keine Windows-Reproduktion liegt hier vor.
+
+Änderung: Zertifikatserzeugung und CI-Vertrauensimport sind getrennte Schritte mit Fortschrittsmeldungen, `-NonInteractive` und je zwei Minuten Timeout. Erzeugung setzt `KeyProtection=None` und `Confirm=false`; der Fingerprint wird sofort für Cleanup aufgezeichnet. Der Vertrauensimport erfolgt per certutil in den Maschinenstores des kurzlebigen, erhöhten GitHub-hosted-Runners, nicht mehr in CurrentUser\Root. Er ist pro Prozess auf 30 Sekunden begrenzt und außerhalb eines solchen Runners gesperrt. Cleanup entfernt dieselben Maschinenstore-Einträge und den eigenen privaten Schlüssel. Benutzerinstallation/-vertrauen sind dadurch nicht geändert.
+
+Lokal geprüfte Änderungen:
+
+- `scripts/test-preview-certificate.ps1` unter PowerShell 7.4.6/Linux: Exit 0, mit gemockten Windows-Cmdlets. Prüft unterdrückte Schutz-/Bestätigungsabfragen, nicht exportierbaren Schlüssel, ausschließlich öffentlichen Export, verbleibenden Cleanup-Fingerprint bei Exportfehler und Ablehnung des Maschinenimports außerhalb des CI-Runners. Ein anfänglicher Testfixture-Scopefehler wurde vor dem erfolgreichen Lauf korrigiert.
+- PowerShell-Parserprüfung aller Scripts und Quelltext-/Dateistrukturprüfung erfolgreich. Workflow-YAML und Trennung/Timeouts der Schritte geprüft.
+- Die echte Windows-Zertifikatserzeugung, certutil-Imports sowie VSTO-Build/Installation bleiben durch den nächsten Windows-Lauf nachzuweisen. Die Mocktests beweisen diese nicht.
+
+---
+
 # CI-Korrektur: OfficeTools/MSBuild-Erkennung
 
 Der gemeldete Windows-Lauf erreichte vorhandene Office-Targets, scheiterte aber anschließend am zusätzlichen `vswhere -requires Microsoft.VisualStudio.Component.OfficeTools`-Filter. Dieser Metadatenfilter wird nicht mehr verwendet.

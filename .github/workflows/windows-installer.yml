@@ -38,17 +38,25 @@ jobs:
           if ($failed) { throw 'PowerShell syntax validation failed.' }
       - name: Test Office toolchain discovery
         run: .\scripts\test-office-toolchain.ps1
+      - name: Test preview certificate orchestration
+        run: .\scripts\test-preview-certificate.ps1
       - name: Ensure Visual Studio Office/VSTO tools
         run: .\scripts\ensure-office-tools.ps1
       - name: Create temporary preview signing certificate
         id: certificate
+        timeout-minutes: 2
+        shell: powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File {0}
         run: |
-          $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=Meet Link Offline Preview' -CertStoreLocation Cert:\CurrentUser\My -Provider 'Microsoft Enhanced RSA and AES Cryptographic Provider' -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -KeySpec Signature -KeyExportPolicy NonExportable -NotAfter (Get-Date).AddMonths(3)
-          "thumbprint=$($cert.Thumbprint)" >> $env:GITHUB_OUTPUT
-          # Trust only inside the disposable CI worker, so manifest verification works.
-          $public = Export-Certificate -Cert $cert -FilePath "$env:RUNNER_TEMP\meetlink.cer"
-          Import-Certificate -FilePath $public.FullName -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
-          Import-Certificate -FilePath $public.FullName -CertStoreLocation Cert:\CurrentUser\TrustedPublisher | Out-Null
+          $ErrorActionPreference = 'Stop'
+          .\scripts\create-preview-certificate.ps1 -OutputDirectory $env:RUNNER_TEMP
+      - name: Trust preview certificate on disposable CI machine
+        timeout-minutes: 2
+        shell: powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File {0}
+        env:
+          SIGNING_THUMBPRINT: ${{ steps.certificate.outputs.thumbprint }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .\scripts\trust-preview-certificate-ci.ps1 -CertificatePath "$env:RUNNER_TEMP\meetlink.cer" -ExpectedThumbprint $env:SIGNING_THUMBPRINT
       - name: Build tests, VSTO and portable signed installer
         env:
           SIGNING_THUMBPRINT: ${{ steps.certificate.outputs.thumbprint }}
@@ -72,14 +80,15 @@ jobs:
           if-no-files-found: warn
       - name: Remove temporary signing certificate
         if: always()
+        timeout-minutes: 2
         env:
           SIGNING_THUMBPRINT: ${{ steps.certificate.outputs.thumbprint }}
         run: |
           if ($env:SIGNING_THUMBPRINT) {
-            foreach ($store in @('My', 'Root', 'TrustedPublisher')) {
-              $path = "Cert:\CurrentUser\$store\$env:SIGNING_THUMBPRINT"
-              if (Test-Path $path) {
-                if ($store -eq 'My') { Remove-Item $path -DeleteKey -Force } else { Remove-Item $path -Force }
-              }
+            $private = "Cert:\CurrentUser\My\$env:SIGNING_THUMBPRINT"
+            if (Test-Path $private) { Remove-Item $private -DeleteKey -Force }
+            foreach ($store in @('Root', 'TrustedPublisher')) {
+              $path = "Cert:\LocalMachine\$store\$env:SIGNING_THUMBPRINT"
+              if (Test-Path $path) { Remove-Item $path -Force }
             }
           }
